@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
@@ -568,6 +569,11 @@ app.get('/track/:orderId', async (req, res) => {
     res.status(500).send('Tracking failed');
   }
 });
+
+app.get('/', (req, res) => {
+  res.status(200).send('Aramex Integration Server is up and running');
+});
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
