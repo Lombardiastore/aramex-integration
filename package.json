@@ -1,0 +1,26 @@
+{
+  "name": "aramex-json-integration",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lombardiastore/aramex-integration.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lombardiastore/aramex-integration/issues"
+  },
+  "homepage": "https://github.com/lombardiastore/aramex-integration#readme",
+  "description": ""
+}

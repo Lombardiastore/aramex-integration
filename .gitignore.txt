@@ -1,0 +1,5 @@
+.env
+.env.txt
+replacements.txt
+*.json
+node_modules/
