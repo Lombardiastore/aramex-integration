@@ -95,6 +95,13 @@ app.post('/webhook', async (req, res) => {
   const locationInfo = locationId ? await getLocationById(locationId) : null;
   const isCOD = order.payment_gateway_names.includes("Cash on Delivery");
   const codAmount = isCOD ? parseFloat(order.total_price) : 0;
+  function getNextWorkingDay(date = new Date()) {
+  let next = new Date(date);
+  while ([5, 6].includes(next.getDay())) { // 5=جمعة، 6=سبت
+    next.setDate(next.getDate() + 1);
+      }
+  return next;
+     }
 
   const payload = {
     ClientInfo: {
@@ -299,6 +306,11 @@ let shipmentRefs = {};
 if (fs.existsSync(SHIPMENTS_DATA_FILE)) {
   shipmentRefs = JSON.parse(fs.readFileSync(SHIPMENTS_DATA_FILE));
 }
+if (shipmentRefs[orderId]) {
+  console.log(`⚠️ Shipment already exists for Order ${orderId}. Skipping.`);
+  return res.status(200).send('Shipment already exists');
+}
+
 shipmentRefs[orderId] = shipmentID;
 fs.writeFileSync(SHIPMENTS_DATA_FILE, JSON.stringify(shipmentRefs, null, 2));
 console.log(`💾 Saved Shipment ID for order ${orderId}`);
@@ -332,10 +344,10 @@ const pickupPayload = {
     PickupAddress: payload.Shipments[0].Shipper.PartyAddress,
     PickupContact: payload.Shipments[0].Shipper.Contact,
     PickupLocation: "Reception",
-    PickupDate: toAramexDate(new Date()),
-    ReadyTime: toAramexDate(new Date()),
-    LastPickupTime: toAramexDate(new Date()),
-    ClosingTime: toAramexDate(new Date()),
+    PickupDate: toAramexDate(getNextWorkingDay()),
+    ReadyTime: toAramexDate(getNextWorkingDay()),
+    LastPickupTime: toAramexDate(getNextWorkingDay()),
+    ClosingTime: toAramexDate(getNextWorkingDay()),
     Comments: "",
     Reference1: "Ref1",
     Reference2: "",
