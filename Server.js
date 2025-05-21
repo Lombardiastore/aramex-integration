@@ -105,7 +105,7 @@ app.post('/webhook', async (req, res) => {
 
       try {
         const cancelRes = await axios.post(
-          'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CancelPickup',
+          'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CancelPickup',
           cancelPayload,
           {
             headers: {
@@ -150,29 +150,22 @@ app.post('/webhook', async (req, res) => {
 
 const shippingAddress = order.shipping_address;
 
-if (shippingAddress) {
-  if (shippingAddress.name) {
-    customerName = shippingAddress.name;
-  } else if (shippingAddress.first_name || shippingAddress.last_name) {
-    customerName = `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim();
-  }
-};
 
 const customerPhone = shippingAddress.phone || '';
 const customerEmail = order.email || '';
 const customerName =
-  shippingAddress?.name ||
-  `${shippingAddress?.first_name || ''} ${shippingAddress?.last_name || ''}`.trim() ||
+  (shippingAddress?.name && shippingAddress.name.trim() !== '') ? shippingAddress.name :
+  ((shippingAddress?.first_name || '') + ' ' + (shippingAddress?.last_name || '')).trim() ||
   'Lombardia Customer';
 console.log('👤 Customer Name:', customerName);
 
   const payload = {
     ClientInfo: {
-      UserName: "waleed.khaled@lombardia.com.jo",
-      Password: "W712@acom",
+      UserName: "testingapi@aramex.com",
+      Password: "R123456789$r",
       Version: "v1",
-      AccountNumber: "71815721",
-      AccountPin: "718181",
+      AccountNumber: "20016",
+      AccountPin: "331421",
       AccountEntity: "AMM",
       AccountCountryCode: "JO",
       Source: 24
@@ -185,7 +178,7 @@ console.log('👤 Customer Name:', customerName);
         Shipper: {
          Reference1: orderId.toString(),
          Reference2: "",
-         AccountNumber: "71815721",
+         AccountNumber: "20016",
          PartyAddress: {
          Line1: locationInfo?.address1 || "Default Line1",
          Line2: locationInfo?.address2 || "",
@@ -362,7 +355,7 @@ console.log('👤 Customer Name:', customerName);
 
   try {
     const createShipmentRes = await axios.post(
-      'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreateShipments',
+      'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreateShipments',
       payload,
       {
         headers: {
@@ -399,7 +392,7 @@ if (createShipmentRes.data.HasErrors || !createShipmentRes.data.Shipments?.[0]?.
       };
 
       const labelRes = await axios.post(
-        'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/PrintLabel',
+        'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/PrintLabel',
         labelPayload,
         {
           headers: {
@@ -453,7 +446,7 @@ if (createShipmentRes.data.HasErrors || !createShipmentRes.data.Shipments?.[0]?.
       };
 
       const pickupRes = await axios.post(
-        'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreatePickup',
+        'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreatePickup',
         pickupPayload,
         {
           headers: {
@@ -480,7 +473,7 @@ if (createShipmentRes.data.HasErrors || !createShipmentRes.data.Shipments?.[0]?.
       };
 
       const trackRes = await axios.post(
-        'https://ws.aramex.net/ShippingAPI.V2/Tracking/Service_1_0.svc/json/TrackShipments',
+        'https://ws.sbx.aramex.net/ShippingAPI.V2/Tracking/Service_1_0.svc/json/TrackShipments',
         trackPayload,
         {
           headers: {
@@ -557,7 +550,7 @@ app.get('/cancel-shipment/:orderId', async (req, res) => {
 
   try {
     const cancelRes = await axios.post(
-      'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CancelShipment',
+      'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CancelShipment',
       cancelPayload,
       {
         headers: {
@@ -608,7 +601,7 @@ app.get('/track/:orderId', async (req, res) => {
 
   try {
     const trackRes = await axios.post(
-      'https://ws.aramex.net/ShippingAPI.V2/Tracking/Service_1_0.svc/json/TrackShipments',
+      'https://ws.sbx.aramex.net/ShippingAPI.V2/Tracking/Service_1_0.svc/json/TrackShipments',
       trackPayload,
       {
         headers: {
