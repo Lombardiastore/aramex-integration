@@ -45,9 +45,11 @@ function markOrderAsProcessed(orderId) {
 app.post('/webhook', async (req, res) => {
   const order = req.body;
   const orderId = order.id;
- 
+   const topic = req.headers['x-shopify-topic'] || '';
 
-  if (order.cancelled_at) {
+   console.log('🔍 Webhook topic:', topic);
+
+  if (topic === 'orders/cancelled') {
     console.log(`⚠️ Shopify order ${orderId} was CANCELLED.`);
     const pickupGUID = pickupRefs[orderId];
 
@@ -97,6 +99,12 @@ app.post('/webhook', async (req, res) => {
       return res.status(200).send('Order cancelled, no pickup found');
     }
   }
+
+  if (topic !== 'orders/create') {
+    console.log(`ℹ️ Ignored webhook topic: ${topic}`);
+    return res.status(200).send('Ignored');
+  }
+
 
   console.log('🔔 Webhook received from Shopify!');
   console.log('📦 FULL Webhook Payload:', JSON.stringify(req.body, null, 2));
