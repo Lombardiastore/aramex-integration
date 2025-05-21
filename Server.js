@@ -149,7 +149,11 @@ app.post('/webhook', async (req, res) => {
   }
 
 const shippingAddress = order.shipping_address;
-const customerName = `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim();
+const customerName = (
+  shippingAddress.name ||
+  `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}` ||
+  'Lombardia Customer'
+).trim();
 const customerPhone = shippingAddress.phone || '';
 const customerEmail = order.email || '';
 
