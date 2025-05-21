@@ -149,7 +149,6 @@ app.post('/webhook', async (req, res) => {
   }
 
 const shippingAddress = order.shipping_address;
-let customerName = 'Lombardia Customer';
 
 if (shippingAddress) {
   if (shippingAddress.name) {
@@ -161,6 +160,10 @@ if (shippingAddress) {
 
 const customerPhone = shippingAddress.phone || '';
 const customerEmail = order.email || '';
+const customerName =
+  shippingAddress?.name ||
+  `${shippingAddress?.first_name || ''} ${shippingAddress?.last_name || ''}`.trim() ||
+  'Lombardia Customer';
 console.log('👤 Customer Name:', customerName);
 
   const payload = {
@@ -220,10 +223,10 @@ console.log('👤 Customer Name:', customerName);
           Reference2: "",
           AccountNumber: "",
           PartyAddress: {
-            Line1: shippingAddress.address1 || "",
+            Line1: shippingAddress.address1 || "Unknown Street",
             Line2: shippingAddress.address2 || "",
             Line3: "",
-            City: shippingAddress.city || "",
+            City: shippingAddress.city || "Amman",
             StateOrProvinceCode: shippingAddress.province || "",
             PostCode: shippingAddress.zip || "",
             CountryCode: shippingAddress.country_code || "JO",
