@@ -66,7 +66,10 @@ async function getLocationById(locationId) {
 
 app.post('/webhook', async (req, res) => {
   const order = req.body;
-  const locationId = order.location_id;
+  let locationId = order.location_id;
+  if (!locationId && order.line_items?.[0]?.origin_location?.id) {
+  locationId = order.line_items[0].origin_location.id;
+  };
   const locationInfo = locationId ? await getLocationById(locationId) : null;
   const orderId = order.id;
    const topic = req.headers['x-shopify-topic'] || '';
