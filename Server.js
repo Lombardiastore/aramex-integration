@@ -1,4 +1,3 @@
-// 📦 Aramex Integration with Shopify — Final Version (Preserving all original code)
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -160,6 +159,10 @@ app.post('/webhook', async (req, res) => {
           PersonName: `${order.shipping_address?.first_name || ""} ${order.shipping_address?.last_name || ""}`,
           CompanyName: order.shipping_address?.company || "",
           PhoneNumber1: order.shipping_address?.phone || "",
+          PhoneNumber2: "",
+          PhoneNumber1Ext: "",
+          PhoneNumber2Ext: "",
+          FaxNumber: "",
           CellPhone: order.shipping_address?.phone || "",
           EmailAddress: order.email || "",
           Type: ""
