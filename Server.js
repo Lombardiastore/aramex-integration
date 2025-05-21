@@ -43,7 +43,7 @@ app.post('/webhook', async (req, res) => {
       Password: "R123456789$r",
       Version: "v1",
       AccountNumber: "20016",
-      AccountPin: "331421",
+      AccountPin: "543543",
       AccountEntity: "AMM",
       AccountCountryCode: "JO",
       Source: 24
