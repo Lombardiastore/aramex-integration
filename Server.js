@@ -360,6 +360,12 @@ const customerEmail = order.email || '';
     );
 
     console.log('✅ Aramex CreateShipment Response:', createShipmentRes.data);
+if (createShipmentRes.data.HasErrors || !createShipmentRes.data.Shipments?.[0]?.ID) {
+  console.error('❌ Aramex CreateShipment response contains errors or missing shipment ID.');
+  console.error('🔎 Notifications:', JSON.stringify(createShipmentRes.data.Shipments?.[0]?.Notifications, null, 2));
+  return res.status(400).send('❌ CreateShipment failed. Check Aramex response.');
+}
+
 
     const shipmentID = createShipmentRes.data?.Shipments?.[0]?.ID;
     shipmentRefs[orderId] = shipmentID;
