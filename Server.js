@@ -42,8 +42,32 @@ function markOrderAsProcessed(orderId) {
   processedOrders.add(orderId);
 }
 
+async function getLocationById(locationId) {
+  const shop = 'lombardiastore.com';
+  const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+  try {
+    const res = await axios.get(
+      `https://${shop}/admin/api/2024-01/locations/${locationId}.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return res.data.location;
+  } catch (err) {
+    console.error('❌ Error fetching location:', err.response?.data || err.message);
+    return null;
+  }
+}
+
+
 app.post('/webhook', async (req, res) => {
   const order = req.body;
+  const locationId = order.location_id;
+  const locationInfo = locationId ? await getLocationById(locationId) : null;
   const orderId = order.id;
    const topic = req.headers['x-shopify-topic'] || '';
 
@@ -143,40 +167,40 @@ const customerEmail = order.email || '';
         Reference2: "",
         Reference3: "",
         Shipper: {
-          Reference1: orderId.toString(),
-          Reference2: "",
-          AccountNumber: "71815721",
-          PartyAddress: {
-            Line1: "Shpr Address Line 1",
-            Line2: "",
-            Line3: "",
-            City: "AMMAN",
-            StateOrProvinceCode: "",
-            PostCode: "",
-            CountryCode: "JO",
-            Longitude: 0,
-            Latitude: 0,
-            BuildingNumber: null,
-            BuildingName: null,
-            Floor: null,
-            Apartment: null,
-            POBox: null,
-            Description: null
-          },
-          Contact: {
-            Department: "",
-            PersonName: "Shpr Person Name",
-            Title: "",
-            CompanyName: "Shpr Company Name",
-            PhoneNumber1: "962790000000",
-            PhoneNumber1Ext: "",
-            PhoneNumber2: "",
-            PhoneNumber2Ext: "",
-            FaxNumber: "",
-            CellPhone: "962790000000",
-            EmailAddress: "shpr@emailadress.com",
-            Type: ""
-          }
+         Reference1: orderId.toString(),
+         Reference2: "",
+         AccountNumber: "71815721",
+         PartyAddress: {
+         Line1: locationInfo?.address1 || "Default Line1",
+         Line2: locationInfo?.address2 || "",
+         Line3: "",
+         City: locationInfo?.city || "AMMAN",
+         StateOrProvinceCode: locationInfo?.province || "",
+         PostCode: locationInfo?.zip || "",
+         CountryCode: locationInfo?.country_code || "JO",
+         Longitude: 0,
+         Latitude: 0,
+         BuildingNumber: null,
+         BuildingName: null,
+         Floor: null,
+         Apartment: null,
+         POBox: null,
+         Description: null
+        },
+         Contact: {
+         Department: "",
+         PersonName: locationInfo?.name || "Default Name",
+         Title: "",
+         CompanyName: locationInfo?.name || "Default Company",
+         PhoneNumber1: locationInfo?.phone || "962790000000",
+         PhoneNumber1Ext: "",
+         PhoneNumber2: "",
+         PhoneNumber2Ext: "",
+         FaxNumber: "",
+         CellPhone: locationInfo?.phone || "962790000000",
+         EmailAddress: "shpr@emailadress.com",
+         Type: ""
+        }
         },
         Consignee: {
           Reference1: orderId.toString(),
@@ -530,7 +554,7 @@ app.get('/cancel-shipment/:orderId', async (req, res) => {
 
 app.get('/track/:orderId', async (req, res) => {
   const orderId = req.params.orderId;
-  const shipmentID = shipments[orderId];
+  const shipmentID = shipmentRefs[orderId];
 
   if (!shipmentID) {
     return res.status(404).send('❗ Shipment ID not found for this order');
