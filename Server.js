@@ -30,6 +30,34 @@ function markOrderAsProcessed(orderId) {
 app.post('/webhook', async (req, res) => {
   console.log('🔔 Webhook received from Shopify!');
   console.log('📦 FULL Webhook Payload:', JSON.stringify(req.body, null, 2));
+  const order = req.body;
+let locationId = order.location_id;
+if (!locationId && order.line_items?.[0]?.origin_location?.id) {
+  locationId = order.line_items[0].origin_location.id;
+}
+
+async function getLocationById(locationId) {
+  const shop = 'lombardiastore.com';
+  const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+  try {
+    const res = await axios.get(
+      `https://${shop}/admin/api/2024-01/locations/${locationId}.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return res.data.location;
+  } catch (err) {
+    console.error('❌ Error fetching location:', err.response?.data || err.message);
+    return null;
+  }
+}
+
+const locationInfo = locationId ? await getLocationById(locationId) : null;
 
   const orderId = req.body.id;
   if (isOrderProcessed(orderId)) {
@@ -58,36 +86,21 @@ app.post('/webhook', async (req, res) => {
           Reference2: "",
           AccountNumber: "20016",
           PartyAddress: {
-            Line1: "Shpr Address Line 1",
-            Line2: "",
-            Line3: "",
-            City: "AMMAN",
-            StateOrProvinceCode: "",
-            PostCode: "",
-            CountryCode: "JO",
-            Longitude: 0,
-            Latitude: 0,
-            BuildingNumber: null,
-            BuildingName: null,
-            Floor: null,
-            Apartment: null,
-            POBox: null,
-            Description: null
-          },
-          Contact: {
-            Department: "",
-            PersonName: "Shpr Person Name",
-            Title: "",
-            CompanyName: "Shpr Company Name",
-            PhoneNumber1: "962790000000",
-            PhoneNumber1Ext: "",
-            PhoneNumber2: "",
-            PhoneNumber2Ext: "",
-            FaxNumber: "",
-            CellPhone: "962790000000",
-            EmailAddress: "shpr@emailadress.com",
-            Type: ""
-          }
+          Line1: locationInfo?.address1 || "Default Address",
+          Line2: locationInfo?.address2 || "",
+          City: locationInfo?.city || "Amman",
+          PostCode: locationInfo?.zip || "",
+          CountryCode: locationInfo?.country_code || "JO",
+          Longitude: 0,
+         Latitude: 0
+        },
+         Contact: {
+         PersonName: locationInfo?.name || "Default Name",
+         CompanyName: locationInfo?.name || "Default Name",
+         PhoneNumber1: locationInfo?.phone || "962790000000",
+         CellPhone: locationInfo?.phone || "962790000000",
+         EmailAddress: "info@lombardiastore.com"
+        }
         },
         Consignee: {
           Reference1: orderId.toString(),
