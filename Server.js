@@ -247,6 +247,130 @@ app.post('/webhook', async (req, res) => {
 
     const shipmentID = createShipmentRes.data?.Shipments?.[0]?.ID;
     if (!shipmentID) return res.status(400).send('Shipment creation failed');
+// 🟢 حفظ رقم الشحنة في ملف shipments.json
+const fs = require('fs');
+const path = require('path');
+
+const SHIPMENTS_DATA_FILE = path.join(__dirname, 'shipments.json');
+let shipmentRefs = {};
+if (fs.existsSync(SHIPMENTS_DATA_FILE)) {
+  shipmentRefs = JSON.parse(fs.readFileSync(SHIPMENTS_DATA_FILE));
+}
+shipmentRefs[orderId] = shipmentID;
+fs.writeFileSync(SHIPMENTS_DATA_FILE, JSON.stringify(shipmentRefs, null, 2));
+console.log(`💾 Saved Shipment ID for order ${orderId}`);
+
+const labelPayload = {
+  ClientInfo: payload.ClientInfo,
+  LabelInfo: payload.LabelInfo,
+  OriginEntity: "AMM",
+  ProductGroup: "DOM",
+  ShipmentNumber: shipmentID,
+  Transaction: payload.Transaction
+};
+
+const labelRes = await axios.post(
+  'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/PrintLabel',
+  labelPayload,
+  {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  }
+);
+
+const labelUrl = labelRes.data.LabelURL || labelRes.data?.ShipmentLabel?.LabelURL;
+console.log('✅ Label URL:', labelUrl);
+const pickupPayload = {
+  ClientInfo: payload.ClientInfo,
+  LabelInfo: { ReportID: 9201, ReportType: "URL" },
+  Pickup: {
+    PickupAddress: payload.Shipments[0].Shipper.PartyAddress,
+    PickupContact: payload.Shipments[0].Shipper.Contact,
+    PickupLocation: "Reception",
+    PickupDate: toAramexDate(new Date()),
+    ReadyTime: toAramexDate(new Date()),
+    LastPickupTime: toAramexDate(new Date()),
+    ClosingTime: toAramexDate(new Date()),
+    Comments: "",
+    Reference1: "Ref1",
+    Reference2: "",
+    Vehicle: "",
+    Shipments: [],
+    PickupItems: [
+      {
+        ProductGroup: "DOM",
+        ProductType: "ONP",
+        NumberOfShipments: 1,
+        PackageType: "",
+        Payment: "P",
+        ShipmentWeight: { Unit: "KG", Value: 0.5 },
+        ShipmentVolume: null,
+        NumberOfPieces: 1,
+        ShipmentDimensions: { Length: 0, Width: 0, Height: 0, Unit: "" },
+        CashAmount: null,
+        ExtraCharges: null,
+        Comments: ""
+      }
+    ],
+    Status: "Ready",
+    ExistingShipments: null,
+    Branch: "",
+    RouteCode: ""
+  },
+  Transaction: payload.Transaction
+};
+
+const pickupRes = await axios.post(
+  'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreatePickup',
+  pickupPayload,
+  {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  }
+);
+
+console.log('✅ Pickup created successfully:', pickupRes.data);
+
+// 🟢 حفظ GUID
+const CANCELED_DATA_FILE = path.join(__dirname, 'pickup_references.json');
+let pickupRefs = {};
+if (fs.existsSync(CANCELED_DATA_FILE)) {
+  pickupRefs = JSON.parse(fs.readFileSync(CANCELED_DATA_FILE));
+}
+if (pickupRes.data?.ProcessedPickup?.GUID) {
+  pickupRefs[orderId] = pickupRes.data.ProcessedPickup.GUID;
+  fs.writeFileSync(CANCELED_DATA_FILE, JSON.stringify(pickupRefs, null, 2));
+  console.log(`💾 Saved Pickup GUID for order ${orderId}`);
+}
+
+const shop = 'lombardiastore.com';
+const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+const trackingUrl = `https://www.aramex.com/track/results?mode=0&ShipmentNumber=${shipmentID}`;
+const fulfillmentPayload = {
+  fulfillment: {
+    tracking_number: shipmentID,
+    tracking_urls: [trackingUrl],
+    notify_customer: true
+  }
+};
+
+await axios.post(
+  `https://${shop}/admin/api/2024-01/orders/${orderId}/fulfillments.json`,
+  fulfillmentPayload,
+  {
+    headers: {
+      'X-Shopify-Access-Token': accessToken,
+      'Content-Type': 'application/json'
+    }
+  }
+);
+
+console.log('✅ Shopify order fulfilled with tracking number:', shipmentID);
+
 
     markOrderAsProcessed(orderId);
 
