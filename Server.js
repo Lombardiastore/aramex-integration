@@ -88,6 +88,7 @@ const locationInfo = locationId ? await getLocationById(locationId) : null;
           PartyAddress: {
           Line1: locationInfo?.address1 || "Default Address",
           Line2: locationInfo?.address2 || "",
+          Line3: "",
           City: locationInfo?.city || "Amman",
           PostCode: locationInfo?.zip || "",
           CountryCode: locationInfo?.country_code || "JO",
