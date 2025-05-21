@@ -149,13 +149,19 @@ app.post('/webhook', async (req, res) => {
   }
 
 const shippingAddress = order.shipping_address;
-const customerName = (
-  shippingAddress.name ||
-  `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}` ||
-  'Lombardia Customer'
-).trim();
+let customerName = 'Lombardia Customer';
+
+if (shippingAddress) {
+  if (shippingAddress.name) {
+    customerName = shippingAddress.name;
+  } else if (shippingAddress.first_name || shippingAddress.last_name) {
+    customerName = `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim();
+  }
+};
+
 const customerPhone = shippingAddress.phone || '';
 const customerEmail = order.email || '';
+console.log('👤 Customer Name:', customerName);
 
   const payload = {
     ClientInfo: {
@@ -365,6 +371,7 @@ const customerEmail = order.email || '';
 
     console.log('✅ Aramex CreateShipment Response:', createShipmentRes.data);
 if (createShipmentRes.data.HasErrors || !createShipmentRes.data.Shipments?.[0]?.ID) {
+  markOrderAsProcessed(orderId); // حتى لو صار error من أرامكس، نمنع التكرار
   console.error('❌ Aramex CreateShipment response contains errors or missing shipment ID.');
   console.error('🔎 Notifications:', JSON.stringify(createShipmentRes.data.Shipments?.[0]?.Notifications, null, 2));
   return res.status(400).send('❌ CreateShipment failed. Check Aramex response.');
