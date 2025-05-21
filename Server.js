@@ -96,12 +96,18 @@ const locationInfo = locationId ? await getLocationById(locationId) : null;
          Latitude: 0
         },
          Contact: {
-         PersonName: locationInfo?.name || "Default Name",
-         CompanyName: locationInfo?.name || "Default Name",
-         PhoneNumber1: locationInfo?.phone || "962790000000",
-         CellPhone: locationInfo?.phone || "962790000000",
-         EmailAddress: "info@lombardiastore.com"
-        }
+  PersonName: locationInfo?.name || "Default Name",
+  CompanyName: locationInfo?.name || "Default Name",
+  PhoneNumber1: locationInfo?.phone || "962790000000",
+  PhoneNumber2: "", // ✅ مضاف
+  PhoneNumber1Ext: "",
+  PhoneNumber2Ext: "",
+  FaxNumber: "",
+  CellPhone: locationInfo?.phone || "962790000000",
+  EmailAddress: "info@lombardiastore.com",
+  Type: "" // ✅ مضاف
+}
+
         },
         Consignee: {
           Reference1: orderId.toString(),
