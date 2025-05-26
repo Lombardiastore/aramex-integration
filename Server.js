@@ -128,7 +128,7 @@ app.post('/webhook', async (req, res) => {
           Reference2: "",
           AccountNumber: "20016",
           PartyAddress: {
-          Line1: locationInfo?.address1 || "Default Address",
+          Line1: locationInfo?.address1 || "Okkia Booth",
           Line2: locationInfo?.address2 || "",
           Line3: "",
           City: locationInfo?.city || "Amman",
@@ -169,7 +169,7 @@ app.post('/webhook', async (req, res) => {
         Contact: {
           PersonName: `${order.shipping_address?.first_name || ""} ${order.shipping_address?.last_name || ""}`,
           CompanyName: order.shipping_address?.company || "",
-          PhoneNumber1: order.shipping_address?.phone || "",
+          PhoneNumber1: (order.shipping_address?.phone || '').replace('+962', '0'),
           PhoneNumber2: "",
           PhoneNumber1Ext: "",
           PhoneNumber2Ext: "",
@@ -299,6 +299,7 @@ ChargeableWeight: {
     console.log('✅ Aramex CreateShipment Response:', createShipmentRes.data);
 
     const shipmentID = createShipmentRes.data?.Shipments?.[0]?.ID;
+    console.log('🚨 Aramex Error Notifications:', JSON.stringify(createShipmentRes.data?.Shipments?.[0]?.Notifications, null, 2));
     if (!shipmentID) return res.status(400).send('Shipment creation failed');
 // 🟢 حفظ رقم الشحنة في ملف shipments.json
 
@@ -308,9 +309,9 @@ let shipmentRefs = {};
 if (fs.existsSync(SHIPMENTS_DATA_FILE)) {
   shipmentRefs = JSON.parse(fs.readFileSync(SHIPMENTS_DATA_FILE));
 }
-if (shipmentRefs[orderId]) {
-  console.log(`⚠️ Shipment already exists for Order ${orderId}. Skipping.`);
-  return res.status(200).send('Shipment already exists');
+if (!shipmentID || shipmentRefs[orderId]) {
+  console.log(`⚠️ Shipment skipped for Order ${orderId}. Already exists or Aramex failed.`);
+  return res.status(200).send('Shipment already exists or failed');
 }
 
 shipmentRefs[orderId] = shipmentID;
