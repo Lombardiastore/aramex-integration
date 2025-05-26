@@ -128,7 +128,7 @@ app.post('/webhook', async (req, res) => {
           Reference2: "",
           AccountNumber: "20016",
           PartyAddress: {
-          Line1: locationInfo?.address1 || "Okkia Booth",
+          Line1: locationInfo?.address1 || "Contact us to Know the correct location",
           Line2: locationInfo?.address2 || "",
           Line3: "",
           City: locationInfo?.city || "Amman",
@@ -139,14 +139,14 @@ app.post('/webhook', async (req, res) => {
         },
          Contact: {
   PersonName: locationInfo?.name || "Default Name",
-  CompanyName: locationInfo?.name || "Default Name",
-  PhoneNumber1: locationInfo?.phone || "962790000000",
+  CompanyName: locationInfo?.name || "Lombardia Group",
+  PhoneNumber1: "0793533365",
   PhoneNumber2: "", // ✅ مضاف
   PhoneNumber1Ext: "",
   PhoneNumber2Ext: "",
   FaxNumber: "",
-  CellPhone: locationInfo?.phone || "962790000000",
-  EmailAddress: "info@lombardiastore.com",
+  CellPhone: "00962793533365",
+  EmailAddress: "waleed.khaled@lombardia.com.jo",
   Type: "" // ✅ مضاف
 }
 
@@ -154,7 +154,7 @@ app.post('/webhook', async (req, res) => {
          Consignee: {
           Reference1: orderId.toString(),
           Reference2: "",
-          AccountNumber: "20016",
+          AccountNumber: "NULL",
           AccountEntity: "AMM",
           PartyAddress: {
           Line1: order.shipping_address?.address1 || "",
