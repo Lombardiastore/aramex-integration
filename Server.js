@@ -42,11 +42,11 @@ app.post('/webhook', async (req, res) => {
       if (pickupGUID) {
         const cancelPayload = {
           ClientInfo: {
-            UserName: "testingapi@aramex.com",
-            Password: "R123456789$r",
+            UserName: "waleed.khaled@lombardia.com.jo",
+            Password: "W712@acom",
             Version: "v1",
-            AccountNumber: "20016",
-            AccountPin: "543543",
+            AccountNumber: "71815721",
+            AccountPin: "718181",
             AccountEntity: "AMM",
             AccountCountryCode: "JO",
             Source: 24
@@ -58,7 +58,7 @@ app.post('/webhook', async (req, res) => {
         };
 
         const cancelRes = await axios.post(
-          'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CancelPickup',
+          'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CancelPickup',
           cancelPayload,
           { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } }
         );
@@ -109,11 +109,11 @@ app.post('/webhook', async (req, res) => {
 
   const payload = {
     ClientInfo: {
-      UserName: "testingapi@aramex.com",
-      Password: "R123456789$r",
+      UserName: "waleed.khaled@lombardia.com.jo",
+      Password: "W712@acom",
       Version: "v1",
-      AccountNumber: "20016",
-      AccountPin: "543543",
+      AccountNumber: "71815721",
+      AccountPin: "718181",
       AccountEntity: "AMM",
       AccountCountryCode: "JO",
       Source: 24
@@ -126,7 +126,7 @@ app.post('/webhook', async (req, res) => {
         Shipper: {
           Reference1: orderId.toString(),
           Reference2: "",
-          AccountNumber: "20016",
+          AccountNumber: "71815721",
           PartyAddress: {
           Line1: locationInfo?.address1 || "Contact us to Know the correct location",
           Line2: locationInfo?.address2 || "",
@@ -154,6 +154,8 @@ app.post('/webhook', async (req, res) => {
          Consignee: {
           Reference1: orderId.toString(),
           Reference2: "",
+          AccountNumber: "71815721",
+          AccountEntity: "AMM",
           PartyAddress: {
           Line1: order.shipping_address?.address1 || "",
           Line2: order.shipping_address?.address2 || "",
@@ -285,7 +287,7 @@ ChargeableWeight: {
   try {
     console.log('📤 Payload to Aramex (CreateShipments):', JSON.stringify(payload, null, 2)); // temporary
     const createShipmentRes = await axios.post(
-      'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreateShipments',
+      'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreateShipments',
       payload,
       {
         headers: {
@@ -327,7 +329,7 @@ const labelPayload = {
 };
 
 const labelRes = await axios.post(
-  'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/PrintLabel',
+  'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/PrintLabel',
   labelPayload,
   {
     headers: {
@@ -380,7 +382,7 @@ const pickupPayload = {
 };
 
 const pickupRes = await axios.post(
-  'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreatePickup',
+  'https://ws.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreatePickup',
   pickupPayload,
   {
     headers: {
@@ -406,7 +408,7 @@ if (pickupRes.data?.ProcessedPickup?.GUID) {
 
 const shop = 'lombardiastore.com';
 const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
-const trackingUrl = `https://www.sxb.aramex.com/track/results?mode=0&ShipmentNumber=${shipmentID}`;
+const trackingUrl = `https://www.aramex.com/track/results?mode=0&ShipmentNumber=${shipmentID}`;
 const fulfillmentPayload = {
   fulfillment: {
     tracking_number: shipmentID,
@@ -443,8 +445,18 @@ console.log('✅ Shopify order fulfilled with tracking number:', shipmentID);
   const shipmentData = JSON.parse(fs.readFileSync('shipments.json', 'utf8'));
   const shipmentID = shipmentData[orderId];
   if (!shipmentID) return res.status(404).send('No shipment found');
-  res.redirect(`https://www.sbx.aramex.com/track/results?mode=0&ShipmentNumber=${shipmentID}`);
+  res.redirect(`https://www.aramex.com/track/results?mode=0&ShipmentNumber=${shipmentID}`);
 });
+
+// ✅ Ping check for Render UptimeRobot
+app.get('/webhook', (req, res) => {
+  res.status(200).send('✅ Webhook endpoint is alive');
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+
 
 
 app.listen(PORT, () => {
