@@ -244,10 +244,11 @@ ChargeableWeight: {
           ProductGroup: "DOM",
           ProductType: "ONP",
           PaymentType: isCOD ? "C" : "P",
-CashOnDeliveryAmount: {
-  CurrencyCode: "JOD",
-  Value: isCOD ? codAmount : 0
-},
+          PaymentOptions: "",
+          CashOnDeliveryAmount: {
+          CurrencyCode: "JOD",
+          Value: isCOD ? codAmount : 0
+          },
           InsuranceAmount: null,
           CashAdditionalAmount: null,
           CashAdditionalAmountDescription: "",
