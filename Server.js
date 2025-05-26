@@ -154,7 +154,7 @@ app.post('/webhook', async (req, res) => {
          Consignee: {
           Reference1: orderId.toString(),
           Reference2: "",
-          AccountNumber: "NULL",
+          AccountNumber: "20016",
           AccountEntity: "AMM",
           PartyAddress: {
           Line1: order.shipping_address?.address1 || "",
