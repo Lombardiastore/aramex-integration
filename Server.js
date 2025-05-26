@@ -138,7 +138,7 @@ app.post('/webhook', async (req, res) => {
          Latitude: 0
         },
          Contact: {
-  PersonName: locationInfo?.name || "Default Name",
+  PersonName: locationInfo?.name || "Lombardia Group",
   CompanyName: locationInfo?.name || "Lombardia Group",
   PhoneNumber1: "0793533365",
   PhoneNumber2: "", // ✅ مضاف
@@ -154,8 +154,6 @@ app.post('/webhook', async (req, res) => {
          Consignee: {
           Reference1: orderId.toString(),
           Reference2: "",
-          AccountNumber: "20016",
-          AccountEntity: "AMM",
           PartyAddress: {
           Line1: order.shipping_address?.address1 || "",
           Line2: order.shipping_address?.address2 || "",
