@@ -93,15 +93,19 @@ app.post('/webhook', async (req, res) => {
   }
 
   const locationInfo = locationId ? await getLocationById(locationId) : null;
-  const isCOD = order.payment_gateway_names.includes("Cash on Delivery");
+  const isCOD = order.payment_gateway_names.some(g => g.toLowerCase().includes("cod") || g.toLowerCase().includes("cash"));
   const codAmount = isCOD ? parseFloat(order.total_price) : 0;
+  const totalWeight = order.line_items.reduce((sum, item) => {
+  const weightInKg = item.grams ? item.grams / 1000 : (item.weight || 0);
+  return sum + weightInKg * item.quantity;
+}, 0);
   function getNextWorkingDay(date = new Date()) {
-  let next = new Date(date);
-  while ([5, 6].includes(next.getDay())) { // 5=جمعة، 6=سبت
-    next.setDate(next.getDate() + 1);
-      }
-  return next;
-     }
+  let local = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Amman" }));
+  while ([5, 6].includes(local.getDay())) {
+    local.setDate(local.getDate() + 1);
+  }
+  return local;
+}
 
   const payload = {
     ClientInfo: {
@@ -226,28 +230,24 @@ app.post('/webhook', async (req, res) => {
             Unit: "CM"
           },
           ActualWeight: {
-            Unit: "KG",
-            Value: 0.5
-          },
-          ChargeableWeight: {
-            Unit: "KG",
-            Value: 0.5
-          },
-          DescriptionOfGoods: "Test order",
+  Unit: "KG",
+  Value: totalWeight
+},
+ChargeableWeight: {
+  Unit: "KG",
+  Value: totalWeight
+},
+
+          DescriptionOfGoods: order.line_items?.map(i => i.title).join(', ') || "Order Items",
           GoodsOriginCountry: "JO",
-          NumberOfPieces: 1,
+          NumberOfPieces: order.line_items.reduce((sum, item) => sum + item.quantity, 0),
           ProductGroup: "DOM",
           ProductType: "ONP",
-          PaymentType: "P",
-          PaymentOptions: "",
-          CustomsValueAmount: {
-            CurrencyCode: "JOD",
-            Value: 0
-          },
-          CashOnDeliveryAmount: {
-            CurrencyCode: "JOD",
-            Value: 0
-          },
+          PaymentType: isCOD ? "C" : "P",
+CashOnDeliveryAmount: {
+  CurrencyCode: "JOD",
+  Value: isCOD ? codAmount : 0
+},
           InsuranceAmount: null,
           CashAdditionalAmount: null,
           CashAdditionalAmountDescription: "",
@@ -283,6 +283,7 @@ app.post('/webhook', async (req, res) => {
   };
 
   try {
+    console.log('📤 Payload to Aramex (CreateShipments):', JSON.stringify(payload, null, 2)); // temporary
     const createShipmentRes = await axios.post(
       'https://ws.sbx.aramex.net/ShippingAPI.V2/Shipping/Service_1_0.svc/json/CreateShipments',
       payload,
