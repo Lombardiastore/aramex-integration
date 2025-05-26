@@ -154,8 +154,8 @@ app.post('/webhook', async (req, res) => {
          Consignee: {
           Reference1: orderId.toString(),
           Reference2: "",
-          AccountNumber: "",        // ✅ أضف هذا
-          AccountEntity: "",        // ✅ وأضف هذا كمان
+          AccountNumber: "",
+          AccountEntity: "",
           PartyAddress: {
           Line1: order.shipping_address?.address1 || "",
           Line2: order.shipping_address?.address2 || "",
