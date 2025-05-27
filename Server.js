@@ -10,6 +10,16 @@ const PORT = 3000;
 
 app.use(bodyParser.json());
 
+
+// 🟢 تسجيل ومراقبة الطلبات للمنع التكرار
+const processedOrders = new Set();
+function isOrderProcessed(orderId) {
+  return processedOrders.has(orderId);
+}
+function markOrderAsProcessed(orderId) {
+  processedOrders.add(orderId);
+}
+
 // 🕒 تحويل التاريخ إلى صيغة /Date(...)/
 function toAramexDate(date) {
   const offset = -date.getTimezoneOffset();
@@ -20,13 +30,12 @@ function toAramexDate(date) {
   return `/Date(${date.getTime()}${sign}${hours}${minutes})/`;
 }
 
-// 🟢 تسجيل ومراقبة الطلبات للمنع التكرار
-const processedOrders = new Set();
-function isOrderProcessed(orderId) {
-  return processedOrders.has(orderId);
-}
-function markOrderAsProcessed(orderId) {
-  processedOrders.add(orderId);
+function getNextWorkingDay(date = new Date()) {
+  let local = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Amman" }));
+  while ([5, 6].includes(local.getDay())) {
+    local.setDate(local.getDate() + 1);
+  }
+  return local;
 }
 
 app.post('/webhook', async (req, res) => {
@@ -99,13 +108,9 @@ app.post('/webhook', async (req, res) => {
   const weightInKg = item.grams ? item.grams / 1000 : (item.weight || 0);
   return sum + weightInKg * item.quantity;
 }, 0);
-  function getNextWorkingDay(date = new Date()) {
-  let local = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Amman" }));
-  while ([5, 6].includes(local.getDay())) {
-    local.setDate(local.getDate() + 1);
-  }
-  return local;
-}
+  
+const numberOfPieces = order.line_items.reduce((sum, item) => sum + item.quantity, 0);
+  const consigneeName = `${order.shipping_address?.first_name || ""} ${order.shipping_address?.last_name || ""}`.trim();
 
   const payload = {
     ClientInfo: {
@@ -154,8 +159,8 @@ app.post('/webhook', async (req, res) => {
          Consignee: {
           Reference1: orderId.toString(),
           Reference2: "",
-          AccountNumber: "71815721",
-          AccountEntity: "AMM",
+          AccountNumber: "",
+          AccountEntity: "",
           PartyAddress: {
           Line1: order.shipping_address?.address1 || "",
           Line2: order.shipping_address?.address2 || "",
@@ -169,7 +174,7 @@ app.post('/webhook', async (req, res) => {
          },
         Contact: {
           PersonName: `${order.shipping_address?.first_name || ""} ${order.shipping_address?.last_name || ""}`,
-          CompanyName: order.shipping_address?.company || "",
+          CompanyName: `${order.shipping_address?.first_name || ""} ${order.shipping_address?.last_name || ""}`,
           PhoneNumber1: (order.shipping_address?.phone || '').replace('+962', '0'),
           PhoneNumber2: "",
           PhoneNumber1Ext: "",
@@ -244,7 +249,7 @@ ChargeableWeight: {
           NumberOfPieces: order.line_items.reduce((sum, item) => sum + item.quantity, 0),
           ProductGroup: "DOM",
           ProductType: "ONP",
-          PaymentType: isCOD ? "C" : "P",
+          PaymentType: "P",
           PaymentOptions: "",
           CashOnDeliveryAmount: {
           CurrencyCode: "JOD",
@@ -254,7 +259,7 @@ ChargeableWeight: {
           CashAdditionalAmount: null,
           CashAdditionalAmountDescription: "",
           CollectAmount: null,
-          Services: "",
+           Services: isCOD ? "CODS" : "",
           Items: {
             Comments: "",
             GoodsDescription: "",
