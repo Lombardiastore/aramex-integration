@@ -62,7 +62,11 @@ app.post('/webhook', async (req, res) => {
           },
           PickupGUID: pickupGUID,
           Transaction: {
-            Reference1: orderId.toString()
+            Reference1: orderId.toString(),
+            Reference2: "",
+            Reference3: "",
+            Reference4: "",
+            Reference5: ""
           }
         };
 
